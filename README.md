@@ -1,63 +1,63 @@
-# Mapa de Centros Educativos de Cataluña
+# Mapa de Centres Educatius de Catalunya
 
-Aplicación web interactiva que muestra los centros educativos de Cataluña en un mapa, con opciones de filtrado por nivel educativo, ubicación y titularidad del centro.
+Aplicació web interactiva que mostra els centres educatius de Catalunya en un mapa, amb opcions de filtratge per nivell educatiu, ubicació i titularitat del centre.
 
-## Características
+## Característiques
 
-- Visualización de centros educativos en un mapa interactivo
-- Filtrado por:
-  - Nivel educativo (Infantil, Primaria, ESO, Bachillerato, FP)
-  - Municipio
-  - Código postal
-  - Titularidad (Público, Concertado, Privado)
-- Búsqueda por nombre de centro
-- Información detallada de cada centro al hacer clic en el marcador
+- Visualització de centres educatius en un mapa interactiu
+- Filtratge per:
+  - Nivell educatiu (Infantil, Primària, ESO, Batxillerat, FP)
+  - Municipi
+  - Codi postal
+  - Titularitat (Públic, Concertat, Privat)
+- Cerca per nom de centre
+- Informació detallada de cada centre en fer clic al marcador
 
-## Requisitos
+## Requisits
 
-- Navegador web moderno (Chrome, Firefox, Safari, Edge)
-- Conexión a Internet (para cargar Google Maps API)
+- Navegador web modern (Chrome, Firefox, Safari, Edge)
+- Connexió a Internet (per carregar Google Maps API)
 
-## Instalación
+## Instal·lació
 
-1. Clona el repositorio:
+1. Clona el repositori:
    ```bash
    git clone https://github.com/tu-usuario/catalonia-school-map.git
    cd catalonia-school-map
    ```
 
-2. Configura la API de Google Maps:
-   - Crea un archivo `js/config.js` basado en el ejemplo:
+2. Configura l'API de Google Maps:
+   - Crea un fitxer `js/config.js` basat en l'exemple:
      ```bash
      cp js/config.example.js js/config.js
      ```
-   - Obtén una API key de [Google Cloud Console](https://console.cloud.google.com/)
-   - Reemplaza `'TU_API_KEY_AQUI'` en `js/config.js` con tu API key
+   - Obté una API key des de [Google Cloud Console](https://console.cloud.google.com/)
+   - Reemplaça `'TU_API_KEY_AQUI'` a `js/config.js` amb la teva API key
 
-3. Sirve los archivos a través de un servidor web local:
+3. Serveix els fitxers a través d'un servidor web local:
    ```bash
    # Python 3
    python -m http.server 8000
    ```
 
-4. Abre tu navegador en `http://localhost:8000`
+4. Obre el navegador a `http://localhost:8000`
 
-## Estructura del Proyecto
+## Estructura del Projecte
 
-- `index.html` - Página principal de la aplicación
-- `csv/` - Directorio con los datos de los centros educativos
-  - `centres-educatius_utf8.csv` - Datos de los centros en formato UTF-8
-- `README.md` - Este archivo
-- `.gitignore` - Archivo de configuración de Git
+- `index.html` - Pàgina principal de l'aplicació
+- `csv/` - Directori amb les dades dels centres educatius
+  - `centres-educatius_utf8.csv` - Dades dels centres en format UTF-8
+- `README.md` - Aquest fitxer
+- `.gitignore` - Fitxer de configuració de Git
 
-## Licencia
+## Llicència
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Aquest projecte està sota la Llicència MIT. Consulta el fitxer `LICENSE` per a més detalls.
 
-## Datos
+## Dades
 
-Los datos de los centros educativos son proporcionados por el Departament d'Educació de la Generalitat de Catalunya.
+Les dades dels centres educatius són proporcionades pel Departament d'Educació de la Generalitat de Catalunya.
 
-## Contribuciones
+## Contribucions
 
-Las contribuciones son bienvenidas. Por favor, crea un issue para discutir los cambios propuestos antes de hacer un pull request.
+Les contribucions són benvingudes. Si us plau, crea un issue per discutir els canvis proposats abans de fer un pull request.

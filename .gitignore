@@ -12,6 +12,9 @@ Thumbs.db
 # Dependencias
 node_modules/
 
+# Archivos de configuración
+js/config.js
+
 # Archivos CSV originales (ya que tenemos la versión UTF-8)
 csv/centres-educatius.csv
 

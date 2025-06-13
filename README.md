@@ -26,13 +26,21 @@ Aplicación web interactiva que muestra los centros educativos de Cataluña en u
    cd catalonia-school-map
    ```
 
-2. Sirve los archivos a través de un servidor web local:
+2. Configura la API de Google Maps:
+   - Crea un archivo `js/config.js` basado en el ejemplo:
+     ```bash
+     cp js/config.example.js js/config.js
+     ```
+   - Obtén una API key de [Google Cloud Console](https://console.cloud.google.com/)
+   - Reemplaza `'TU_API_KEY_AQUI'` en `js/config.js` con tu API key
+
+3. Sirve los archivos a través de un servidor web local:
    ```bash
    # Python 3
    python -m http.server 8000
    ```
 
-3. Abre tu navegador en `http://localhost:8000`
+4. Abre tu navegador en `http://localhost:8000`
 
 ## Estructura del Proyecto
 

@@ -4,8 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centros Educativos de Cataluña</title>
+    <!-- Configuración -->
+    <script src="js/config.js"></script>
+    
     <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDk2kBDrtkJ4PDyDSTgNhHk8_G0YVGfF2w&callback=onGoogleMapsApiReady" async defer></script>
+    <script>
+        // Cargar Google Maps API dinámicamente con la clave de configuración
+        function loadGoogleMaps() {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${CONFIG.GOOGLE_MAPS_API_KEY}&callback=onGoogleMapsApiReady`;
+            script.async = true;
+            script.defer = true;
+            document.head.appendChild(script);
+        }
+        
+        // Llamar a la función cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', loadGoogleMaps);
+    </script>
     <style>
         * {
             margin: 0;

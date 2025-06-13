@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centros Educativos de Cataluña</title>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDk2kBDrtkJ4PDyDSTgNhHk8_G0YVGfF2w&callback=onGoogleMapsApiReady" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: white;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .filters-section {
+            padding: 20px;
+        }
+
+        .filter-group {
+            margin-bottom: 25px;
+        }
+
+        .filter-group h3 {
+            font-size: 1em;
+            color: #333;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .filter-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+
+        .checkbox-item label {
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .results-info {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-top: 1px solid #e1e5e9;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .clear-filters {
+            width: 100%;
+            padding: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .clear-filters:hover {
+            background: #c82333;
+        }
+
+        .loading-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 40vh;
+                order: 2;
+            }
+            
+            .map-container {
+                height: 60vh;
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="map-container">
+            <div id="map">
+                <div class="loading-message">
+                    Carregant mapa...
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>Centres Educatius</h1>
+                <p>Catalunya</p>
+            </div>
+            
+            <div class="filters-section">
+                <div class="filter-group">
+                    <h3>Cerca per nom</h3>
+                    <input type="text" id="nameFilter" class="filter-input" placeholder="Nom del centre...">
+                </div>
+                
+                <div class="filter-group">
+                    <h3>Codi postal</h3>
+                    <input type="text" id="postalCodeFilter" class="filter-input" placeholder="08000">
+                </div>
+                
+                <div class="filter-group">
+                    <h3>Municipi</h3>
+                    <input type="text" id="municipalityFilter" class="filter-input" placeholder="Municipi...">
+                </div>
+                
+                <div class="filter-group">
+                    <h3>Titularitat</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="public" checked>
+                            <label for="public">Públic</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="concerted" checked>
+                            <label for="concerted">Concertat</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="private" checked>
+                            <label for="private">Privat</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <h3>Tipus d'estudis</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="infantil" checked>
+                            <label for="infantil">Educació Infantil</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="primaria" checked>
+                            <label for="primaria">Educació Primària</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="secundaria" checked>
+                            <label for="secundaria">Educació Secundària</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="batxillerat" checked>
+                            <label for="batxillerat">Batxillerat</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="fp" checked>
+                            <label for="fp">Formació Professional</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="clear-filters" onclick="clearAllFilters()">
+                    Esborrar filtres
+                </button>
+            </div>
+            
+            <div class="results-info" id="resultsInfo">
+                Carregant centres educatius...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let schoolsData = [];
+        let map; // Will hold the Google Map instance
+        let markers = []; // Will hold Google Maps marker instances
+        let currentInfoWindow = null;
+
+        let schoolDataReady = false;
+        let googleApiReady = false;
+
+        // 1. Entry point: Load CSV data when DOM is ready
+        document.addEventListener('DOMContentLoaded', loadCSVData);
+
+        // 2. Google Maps API callback
+        function onGoogleMapsApiReady() {
+            console.log("Google Maps API script has loaded.");
+            googleApiReady = true;
+            tryMapInitialization();
+        }
+
+        // 3. Load CSV Data function
+        async function loadCSVData() {
+            console.log("Attempting to load CSV data...");
+            document.getElementById('resultsInfo').textContent = 'Carregant dades...';
+            try {
+                const response = await fetch('csv/centres-educatius_utf8.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const buffer = await response.arrayBuffer();
+                const decoder = new TextDecoder('utf-8');
+                const csvText = decoder.decode(buffer);
+                const lines = csvText.replace(/\r\n?/g, '\n').split('\n');
+                const headers = lines[0].split(';');
+                
+                const loadedSchools = []; // Temporary array for this load
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    const values = lines[i].split(';');
+                    if (values.length < headers.length) continue;
+                    
+                    const geoX = parseFloat(values[21]?.replace(',', '.')) || 0;
+                    const geoY = parseFloat(values[22]?.replace(',', '.')) || 0;
+                    if (geoX === 0 || geoY === 0) continue;
+                    
+                    const school = {
+                        code: values[0] || '',
+                        name: values[1] || 'Sense nom',
+                        nature: values[3] || 'Desconegut',
+                        address: values[6] || 'Adreça no disponible',
+                        postalCode: values[7] || '',
+                        phone: values[8] || '',
+                        municipality: values[14] || 'Municipi desconegut',
+                        lat: geoY, lng: geoX, email: values[23] || '', studies: []
+                    };
+                    
+                    // Construir array de estudios basado en las columnas específicas del CSV
+                    const studyColumns = {
+                        'EINF1C': 25, 'EINF2C': 26, 'EPRI': 27, 'ESO': 28, 'BATX': 29,
+                        'CFPM': 31, 'CFPS': 34
+                    };
+                    
+                    for (const [studyType, columnIndex] of Object.entries(studyColumns)) {
+                        if (values[columnIndex] && values[columnIndex].trim() !== '') {
+                            school.studies.push(studyType);
+                        }
+                    }
+                    
+                    loadedSchools.push(school);
+                }
+                schoolsData = loadedSchools; // Assign to global variable
+                schoolDataReady = true;
+                console.log(`CSV data loaded successfully. ${schoolsData.length} schools processed.`);
+                document.getElementById('resultsInfo').textContent = `S'han carregat ${schoolsData.length} centres educatius.`;
+                tryMapInitialization();
+            } catch (error) {
+                console.error('Error carregant les dades:', error);
+                document.getElementById('resultsInfo').innerHTML = 
+                    'Error carregant les dades. Assegura\'t que el fitxer CSV estigui al mateix directori.';
+                schoolDataReady = false; // Explicitly set to false on error
+            }
+        }
+
+        // 4. Attempt to initialize the map if both API and data are ready
+        function tryMapInitialization() {
+            console.log(`Trying map initialization: API Ready? ${googleApiReady}, Data Ready? ${schoolDataReady}, Map Exists? ${!!map}`);
+            if (googleApiReady && schoolDataReady && !map) {
+                console.log("Both API and data are ready. Initializing map...");
+                finalizeMapSetup();
+            } else if (map) {
+                console.log("Map already initialized.");
+            } else {
+                console.log("Conditions not yet met for map initialization.");
+            }
+        }
+
+        // 5. Actual Google Map setup and initial filter application
+        function finalizeMapSetup() {
+            const mapElement = document.getElementById('map');
+            
+            // Remove loading message
+            const loadingMessage = mapElement.querySelector('.loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+            
+            // Create Google Map
+            map = new google.maps.Map(mapElement, {
+                center: { lat: 41.3874, lng: 2.1686 }, // Center on Barcelona
+                zoom: 10,
+                styles: [
+                    {
+                        featureType: "poi",
+                        elementType: "labels",
+                        stylers: [{ visibility: "off" }]
+                    }
+                ]
+            });
+            
+            // The global 'markers' array is initialized as empty. 
+            // filterSchools() will handle clearing and adding markers.
+
+            // Add event listeners for filter controls
+            setupFilterEvents();
+            
+            // Populate markers based on the initial state of the filter checkboxes
+            filterSchools();
+        }
+
+        function drawMap() {
+            const canvas = document.getElementById('mapCanvas');
+            const ctx = canvas.getContext('2d');
+            const config = window.mapConfig;
+            
+            // Clear canvas
+            ctx.fillStyle = '#e8f4f8';
+            ctx.fillRect(0, 0, config.width, config.height);
+            
+            // Draw simple map background
+            ctx.fillStyle = '#b8d4e3';
+            ctx.fillRect(0, 0, config.width, config.height);
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#a0c4d7';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            
+            for (let i = 0; i < config.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, config.height);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i < config.height; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(config.width, i);
+                ctx.stroke();
+            }
+            
+            ctx.setLineDash([]);
+            
+            // Draw Catalunya outline (simplified)
+            ctx.fillStyle = '#f0f8ff';
+            ctx.strokeStyle = '#2c5282';
+            ctx.lineWidth = 2;
+            
+            const catalunyaPath = getCatalunyaPath();
+            ctx.beginPath();
+            catalunyaPath.forEach((point, index) => {
+                const screenCoords = latLngToScreen(point.lat, point.lng);
+                if (index === 0) {
+                    ctx.moveTo(screenCoords.x, screenCoords.y);
+                } else {
+                    ctx.lineTo(screenCoords.x, screenCoords.y);
+                }
+            });
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        function getCatalunyaPath() {
+            // Simplified Catalunya border coordinates
+            return [
+                {lat: 42.9, lng: 0.7},
+                {lat: 42.5, lng: 3.3},
+                {lat: 41.4, lng: 3.3},
+                {lat: 40.5, lng: 0.2},
+                {lat: 41.0, lng: 0.2},
+                {lat: 42.9, lng: 0.7}
+            ];
+        }
+
+        function latLngToScreen(lat, lng) {
+            const config = window.mapConfig;
+            const scale = Math.pow(2, config.zoom);
+            
+            // Simple projection (not accurate but functional for demo)
+            const x = (lng - config.centerLng) * scale * 100 + config.width / 2;
+            const y = (config.centerLat - lat) * scale * 100 + config.height / 2;
+            
+            return {x, y};
+        }
+
+        function screenToLatLng(x, y) {
+            const config = window.mapConfig;
+            const scale = Math.pow(2, config.zoom);
+            
+            const lng = (x - config.width / 2) / (scale * 100) + config.centerLng;
+            const lat = config.centerLat - (y - config.height / 2) / (scale * 100);
+            
+            return {lat, lng};
+        }
+
+        function updateMarkers() {
+            const filteredSchools = getFilteredSchools();
+            drawMap(); // Redraw base map
+            
+            const canvas = document.getElementById('mapCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            markers = [];
+            
+            filteredSchools.forEach(school => {
+                const screenCoords = latLngToScreen(school.lat, school.lng);
+                
+                // Only draw if visible on screen
+                if (screenCoords.x >= -10 && screenCoords.x <= window.mapConfig.width + 10 &&
+                    screenCoords.y >= -10 && screenCoords.y <= window.mapConfig.height + 10) {
+                    
+                    // Draw marker
+                    const color = getMarkerColor(school.nature);
+                    
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    
+                    ctx.beginPath();
+                    ctx.arc(screenCoords.x, screenCoords.y, 8, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Store marker data for click detection
+                    markers.push({
+                        x: screenCoords.x,
+                        y: screenCoords.y,
+                        data: school
+                    });
+                }
+            });
+            
+            updateResultsInfo(filteredSchools.length);
+        }
+
+        function getMarkerColor(nature) {
+            switch(nature.toLowerCase()) {
+                case 'públic': return '#28a745';
+                case 'concertat': return '#ffc107';
+                case 'privat': return '#dc3545';
+                default: return '#667eea';
+            }
+        }
+
+        function setupMapEvents() {
+            const canvas = document.getElementById('mapCanvas');
+            let isDragging = false;
+            let lastX, lastY;
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastX = e.offsetX;
+                lastY = e.offsetY;
+                canvas.style.cursor = 'grabbing';
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.offsetX - lastX;
+                    const deltaY = e.offsetY - lastY;
+                    
+                    // Update map center
+                    const scale = Math.pow(2, window.mapConfig.zoom);
+                    window.mapConfig.centerLng -= deltaX / (scale * 100);
+                    window.mapConfig.centerLat += deltaY / (scale * 100);
+                    
+                    updateMarkers();
+                    
+                    lastX = e.offsetX;
+                    lastY = e.offsetY;
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.style.cursor = 'grab';
+            });
+
+            canvas.addEventListener('click', (e) => {
+                if (!isDragging) {
+                    handleMapClick(e.offsetX, e.offsetY);
+                }
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -1 : 1;
+                zoom(delta, e.offsetX, e.offsetY);
+            });
+        }
+
+        function handleMapClick(x, y) {
+            // Check if click is on a marker
+            for (let marker of markers) {
+                const distance = Math.sqrt(Math.pow(x - marker.x, 2) + Math.pow(y - marker.y, 2));
+                if (distance <= 10) {
+                    showInfoWindow(marker.data, x, y);
+                    return;
+                }
+            }
+            
+            // Hide info window if clicking elsewhere
+            hideInfoWindow();
+        }
+
+        function showInfoWindow(school, x, y) {
+            const infoWindow = document.getElementById('infoWindow');
+            const markerClass = school.nature.toLowerCase();
+            
+            infoWindow.innerHTML = `
+                <div style="font-weight: 600; color: #333; margin-bottom: 8px;">${school.name}</div>
+                <div style="font-size: 13px; color: #666; line-height: 1.4;">
+                    <strong>Adreça:</strong> ${school.address}<br>
+                    <strong>Municipi:</strong> ${school.municipality}<br>
+                    <strong>Codi postal:</strong> ${school.postalCode}<br>
+                    <strong>Telèfon:</strong> ${school.phone}<br>
+                    <strong>Email:</strong> ${school.email}
+                </div>
+                <div style="display: inline-block; padding: 3px 8px; background: ${getMarkerColor(school.nature)}; color: white; border-radius: 12px; font-size: 11px; margin-top: 8px;">
+                    ${school.nature}
+                </div>
+                <div style="position: absolute; top: 5px; right: 5px; cursor: pointer; font-size: 16px; color: #999;" onclick="hideInfoWindow()">×</div>
+            `;
+            
+            infoWindow.style.display = 'block';
+            infoWindow.style.left = Math.min(x + 10, window.mapConfig.width - 320) + 'px';
+            infoWindow.style.top = Math.max(y - 100, 10) + 'px';
+            
+            currentInfoWindow = infoWindow;
+        }
+
+        function hideInfoWindow() {
+            const infoWindow = document.getElementById('infoWindow');
+            infoWindow.style.display = 'none';
+            currentInfoWindow = null;
+        }
+
+        function zoomIn() {
+            zoom(1, window.mapConfig.width / 2, window.mapConfig.height / 2);
+        }
+
+        function zoomOut() {
+            zoom(-1, window.mapConfig.width / 2, window.mapConfig.height / 2);
+        }
+
+        function zoom(delta, centerX, centerY) {
+            const config = window.mapConfig;
+            const newZoom = Math.max(config.minZoom, Math.min(config.maxZoom, config.zoom + delta));
+            
+            if (newZoom !== config.zoom) {
+                // Adjust center to zoom towards mouse position
+                const beforeCoords = screenToLatLng(centerX, centerY);
+                config.zoom = newZoom;
+                const afterCoords = screenToLatLng(centerX, centerY);
+                
+                config.centerLat += beforeCoords.lat - afterCoords.lat;
+                config.centerLng += beforeCoords.lng - afterCoords.lng;
+                
+                updateMarkers();
+            }
+        }
+
+        function getFilteredSchools() {
+            if (!schoolsData || schoolsData.length === 0) {
+                console.warn("getFilteredSchools called but schoolsData is empty.");
+                return [];
+            }
+
+            const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+            const postalCodeFilter = document.getElementById('postalCodeFilter').value;
+            const municipalityFilter = document.getElementById('municipalityFilter').value.toLowerCase();
+            
+            const publicChecked = document.getElementById('public').checked;
+            const concertedChecked = document.getElementById('concerted').checked;
+            const privateChecked = document.getElementById('private').checked;
+            
+            const infantilChecked = document.getElementById('infantil').checked;
+            const primariaChecked = document.getElementById('primaria').checked;
+            const secundariaChecked = document.getElementById('secundaria').checked;
+            const batxilleratChecked = document.getElementById('batxillerat').checked;
+            const fpChecked = document.getElementById('fp').checked;
+
+            const allNatureFiltersChecked = publicChecked && concertedChecked && privateChecked;
+            const noNatureFiltersChecked = !publicChecked && !concertedChecked && !privateChecked;
+
+            const allStudyFiltersChecked = infantilChecked && primariaChecked && secundariaChecked && batxilleratChecked && fpChecked;
+            const noStudyFiltersChecked = !infantilChecked && !primariaChecked && !secundariaChecked && !batxilleratChecked && !fpChecked;
+
+            return schoolsData.filter(school => {
+                if (nameFilter && !school.name.toLowerCase().includes(nameFilter)) return false;
+                if (postalCodeFilter && !school.postalCode.includes(postalCodeFilter)) return false;
+                if (municipalityFilter && !school.municipality.toLowerCase().includes(municipalityFilter)) return false;
+
+                // Nature (Titularidad) Filter Logic
+                let passNatureFilter = false;
+                if (allNatureFiltersChecked) {
+                    passNatureFilter = true; // All titularidades checked -> pass
+                } else if (noNatureFiltersChecked) {
+                    passNatureFilter = false; // No titularidades checked -> fail
+                } else {
+                    // Specific titularidades checked
+                    const isPublic = school.nature.toLowerCase().includes('públic');
+                    const isConcerted = school.nature.toLowerCase().includes('concert');
+                    const isPrivate = school.nature.toLowerCase().includes('privat');
+                    if ((publicChecked && isPublic) || 
+                        (concertedChecked && isConcerted) || 
+                        (privateChecked && isPrivate)) {
+                        passNatureFilter = true;
+                    }
+                }
+                if (!passNatureFilter) return false;
+
+                // Studies Filter Logic
+                let passStudiesFilter = false;
+                if (allStudyFiltersChecked || noStudyFiltersChecked) {
+                    passStudiesFilter = true; // All studies checked or No studies checked -> pass (don't filter by studies)
+                } else {
+                    // Specific studies checked - school must have at least one of the selected studies
+                    const studies = school.studies || [];
+                    const hasInfantil = studies.includes('EINF1C') || studies.includes('EINF2C');
+                    const hasPrimaria = studies.includes('EPRI');
+                    const hasSecundaria = studies.includes('ESO');
+                    const hasBatxillerat = studies.includes('BATX');
+                    const hasFP = studies.includes('CFPM') || studies.includes('CFPS');
+                    
+                    // Cambiar lógica: si al menos uno de los filtros seleccionados coincide, pasa
+                    if ((infantilChecked && hasInfantil) ||
+                        (primariaChecked && hasPrimaria) ||
+                        (secundariaChecked && hasSecundaria) ||
+                        (batxilleratChecked && hasBatxillerat) ||
+                        (fpChecked && hasFP)) {
+                        passStudiesFilter = true;
+                    }
+                }
+                if (!passStudiesFilter) return false;
+
+                return true; // Passed all filters
+            });
+        }
+
+        function updateResultsInfo(count) {
+            document.getElementById('resultsInfo').textContent = 
+                `Mostrant ${count} centre${count !== 1 ? 's' : ''} educatiu${count !== 1 ? 's' : ''}`;
+        }
+
+        function filterSchools() {
+            if (!schoolsData || schoolsData.length === 0) {
+                console.warn("filterSchools called but schoolsData is empty or not yet loaded.");
+                if (map && markers) {
+                    markers.forEach(marker => {
+                        if (marker instanceof google.maps.Marker) marker.setMap(null);
+                    });
+                    markers = [];
+                }
+                updateResultsInfo(0);
+                return; 
+            }
+            const filteredSchools = getFilteredSchools();
+            
+            // Actualizar marcadores de Google Maps
+            if (map && markers) {
+                // Eliminar todos los marcadores actuales
+                markers.forEach(marker => {
+                    if (marker instanceof google.maps.Marker) {
+                        marker.setMap(null);
+                    }
+                });
+                
+                // Limpiar array de marcadores
+                markers = [];
+                
+                // Crear nuevos marcadores para las escuelas filtradas
+                filteredSchools.forEach(school => {
+                    const marker = new google.maps.Marker({
+                        position: { lat: school.lat, lng: school.lng },
+                        map: map,
+                        title: school.name,
+                        icon: {
+                            url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                            scaledSize: new google.maps.Size(30, 30)
+                        }
+                    });
+                    
+                    // Añadir evento de clic para mostrar ventana de información
+                    marker.addListener('click', () => {
+                        if (currentInfoWindow) {
+                            currentInfoWindow.close();
+                        }
+                        
+                        const infoWindow = new google.maps.InfoWindow({
+                            content: `
+                                <div style="max-width: 250px;">
+                                    <h3 style="margin: 0 0 5px 0; font-size: 14px;">${school.name}</h3>
+                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${school.address}</p>
+                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${school.postalCode} ${school.municipality}</p>
+                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${school.phone}</p>
+                                    <p style="margin: 0; font-size: 12px;">${school.email}</p>
+                                </div>
+                            `
+                        });
+                        
+                        infoWindow.open(map, marker);
+                        currentInfoWindow = infoWindow;
+                    });
+                    
+                    markers.push(marker);
+                });
+            }
+            
+            // Actualizar información de resultados
+            updateResultsInfo(filteredSchools.length);
+        }
+
+        function clearAllFilters() {
+            document.getElementById('nameFilter').value = '';
+            document.getElementById('postalCodeFilter').value = '';
+            document.getElementById('municipalityFilter').value = '';
+            
+            // Set default state for nature filters (e.g., all checked or none, depending on desired default)
+            document.getElementById('public').checked = true;
+            document.getElementById('concerted').checked = true;
+            document.getElementById('private').checked = true;
+            
+            // Set default state for study filters (e.g., all checked or none)
+            document.getElementById('infantil').checked = true;
+            document.getElementById('primaria').checked = true;
+            document.getElementById('secundaria').checked = true;
+            document.getElementById('batxillerat').checked = true;
+            document.getElementById('fp').checked = true;
+            
+            filterSchools(); // Update Google Maps markers
+        }
+
+        function setupFilterEvents() {
+            document.getElementById('nameFilter').addEventListener('input', filterSchools);
+            document.getElementById('postalCodeFilter').addEventListener('input', filterSchools);
+            document.getElementById('municipalityFilter').addEventListener('input', filterSchools);
+            
+            document.getElementById('public').addEventListener('change', filterSchools);
+            document.getElementById('concerted').addEventListener('change', filterSchools);
+            document.getElementById('private').addEventListener('change', filterSchools);
+            
+            document.getElementById('infantil').addEventListener('change', filterSchools);
+            document.getElementById('primaria').addEventListener('change', filterSchools);
+            document.getElementById('secundaria').addEventListener('change', filterSchools);
+            document.getElementById('batxillerat').addEventListener('change', filterSchools);
+            document.getElementById('fp').addEventListener('change', filterSchools);
+        }
+
+        // Handle window resize
+        // Commenting out resize listener for canvas map to avoid conflicts
+        /* window.addEventListener('resize', () => {
+            setTimeout(() => {
+                const mapElement = document.getElementById('map');
+                const canvas = document.getElementById('mapCanvas');
+                if (canvas && mapElement) {
+                    const rect = mapElement.getBoundingClientRect();
+                    canvas.width = rect.width * window.devicePixelRatio;
+                    canvas.height = rect.height * window.devicePixelRatio;
+                    canvas.style.width = rect.width + 'px';
+                    canvas.style.height = rect.height + 'px';
+                    
+                    window.mapConfig = {
+                        width: rect.width,
+                        height: rect.height,
+                        centerLat: 41.3887902,
+                        centerLng: 2.1596534,
+                        zoom: 12,
+                        minZoom: 10,
+                        maxZoom: 18
+                    };
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                    
+                    // updateMarkers(); // Canvas related
+                }
+            }, 100);
+        }); */
+
+        // window.addEventListener('load', initializeMap); // This is removed to prevent premature initialization
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+# Mapa de Centros Educativos de Cataluña
+
+Aplicación web interactiva que muestra los centros educativos de Cataluña en un mapa, con opciones de filtrado por nivel educativo, ubicación y titularidad del centro.
+
+## Características
+
+- Visualización de centros educativos en un mapa interactivo
+- Filtrado por:
+  - Nivel educativo (Infantil, Primaria, ESO, Bachillerato, FP)
+  - Municipio
+  - Código postal
+  - Titularidad (Público, Concertado, Privado)
+- Búsqueda por nombre de centro
+- Información detallada de cada centro al hacer clic en el marcador
+
+## Requisitos
+
+- Navegador web moderno (Chrome, Firefox, Safari, Edge)
+- Conexión a Internet (para cargar Google Maps API)
+
+## Instalación
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/tu-usuario/catalonia-school-map.git
+   cd catalonia-school-map
+   ```
+
+2. Sirve los archivos a través de un servidor web local:
+   ```bash
+   # Python 3
+   python -m http.server 8000
+   ```
+
+3. Abre tu navegador en `http://localhost:8000`
+
+## Estructura del Proyecto
+
+- `index.html` - Página principal de la aplicación
+- `csv/` - Directorio con los datos de los centros educativos
+  - `centres-educatius_utf8.csv` - Datos de los centros en formato UTF-8
+- `README.md` - Este archivo
+- `.gitignore` - Archivo de configuración de Git
+
+## Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## Datos
+
+Los datos de los centros educativos son proporcionados por el Departament d'Educació de la Generalitat de Catalunya.
+
+## Contribuciones
+
+Las contribuciones son bienvenidas. Por favor, crea un issue para discutir los cambios propuestos antes de hacer un pull request.

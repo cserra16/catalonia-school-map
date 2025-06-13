@@ -61,3 +61,16 @@ Los datos de los centros educativos son proporcionados por el Departament d'Educ
 ## Contribuciones
 
 Las contribuciones son bienvenidas. Por favor, crea un issue para discutir los cambios propuestos antes de hacer un pull request.
+
+## Cybersecurity Best Practices
+
+### Google Maps API Key Security
+
+To protect your Google Maps API key and prevent unauthorized use, follow these best practices:
+
+1.  **Keep `js/config.js` private:** Never commit your `js/config.js` file (which contains your API key) to version control. The `.gitignore` file in this project is already configured to help prevent this, but always double-check.
+2.  **Restrict your API key in the Google Cloud Console:**
+    *   **By HTTP referrer:** Restrict your key to your specific domain (e.g., `*.yourdomain.com/*`). This prevents others from using your key on their websites.
+    *   **To only the "Maps JavaScript API":** Limit the key's usage to only the necessary API. This prevents it from being used for other Google Cloud services you might not intend.
+
+Following these steps helps prevent unauthorized use of your key on other websites or for other services, which could lead to unexpected charges or quota issues.

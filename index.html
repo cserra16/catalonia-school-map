@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://maps.googleapis.com 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://maps.gstatic.com https://maps.googleapis.com data:; connect-src 'self' https://maps.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self';">
     <title>Centros Educativos de Cataluña</title>
     <!-- Configuración -->
     <script src="js/config.js"></script>
@@ -279,6 +280,23 @@
         let markers = []; // Will hold Google Maps marker instances
         let currentInfoWindow = null;
 
+        // Simple HTML sanitization function
+        function sanitizeHTML(text) {
+            if (text === null || typeof text === 'undefined') {
+                return '';
+            }
+            const textStr = String(text); // Ensure it's a string
+            return textStr.replace(/[&<>"']/g, function (match) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[match];
+            });
+        }
+
         let schoolDataReady = false;
         let googleApiReady = false;
 
@@ -399,260 +417,6 @@
             
             // Populate markers based on the initial state of the filter checkboxes
             filterSchools();
-        }
-
-        function drawMap() {
-            const canvas = document.getElementById('mapCanvas');
-            const ctx = canvas.getContext('2d');
-            const config = window.mapConfig;
-            
-            // Clear canvas
-            ctx.fillStyle = '#e8f4f8';
-            ctx.fillRect(0, 0, config.width, config.height);
-            
-            // Draw simple map background
-            ctx.fillStyle = '#b8d4e3';
-            ctx.fillRect(0, 0, config.width, config.height);
-            
-            // Draw grid lines
-            ctx.strokeStyle = '#a0c4d7';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 5]);
-            
-            for (let i = 0; i < config.width; i += 50) {
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, config.height);
-                ctx.stroke();
-            }
-            
-            for (let i = 0; i < config.height; i += 50) {
-                ctx.beginPath();
-                ctx.moveTo(0, i);
-                ctx.lineTo(config.width, i);
-                ctx.stroke();
-            }
-            
-            ctx.setLineDash([]);
-            
-            // Draw Catalunya outline (simplified)
-            ctx.fillStyle = '#f0f8ff';
-            ctx.strokeStyle = '#2c5282';
-            ctx.lineWidth = 2;
-            
-            const catalunyaPath = getCatalunyaPath();
-            ctx.beginPath();
-            catalunyaPath.forEach((point, index) => {
-                const screenCoords = latLngToScreen(point.lat, point.lng);
-                if (index === 0) {
-                    ctx.moveTo(screenCoords.x, screenCoords.y);
-                } else {
-                    ctx.lineTo(screenCoords.x, screenCoords.y);
-                }
-            });
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-        }
-
-        function getCatalunyaPath() {
-            // Simplified Catalunya border coordinates
-            return [
-                {lat: 42.9, lng: 0.7},
-                {lat: 42.5, lng: 3.3},
-                {lat: 41.4, lng: 3.3},
-                {lat: 40.5, lng: 0.2},
-                {lat: 41.0, lng: 0.2},
-                {lat: 42.9, lng: 0.7}
-            ];
-        }
-
-        function latLngToScreen(lat, lng) {
-            const config = window.mapConfig;
-            const scale = Math.pow(2, config.zoom);
-            
-            // Simple projection (not accurate but functional for demo)
-            const x = (lng - config.centerLng) * scale * 100 + config.width / 2;
-            const y = (config.centerLat - lat) * scale * 100 + config.height / 2;
-            
-            return {x, y};
-        }
-
-        function screenToLatLng(x, y) {
-            const config = window.mapConfig;
-            const scale = Math.pow(2, config.zoom);
-            
-            const lng = (x - config.width / 2) / (scale * 100) + config.centerLng;
-            const lat = config.centerLat - (y - config.height / 2) / (scale * 100);
-            
-            return {lat, lng};
-        }
-
-        function updateMarkers() {
-            const filteredSchools = getFilteredSchools();
-            drawMap(); // Redraw base map
-            
-            const canvas = document.getElementById('mapCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            markers = [];
-            
-            filteredSchools.forEach(school => {
-                const screenCoords = latLngToScreen(school.lat, school.lng);
-                
-                // Only draw if visible on screen
-                if (screenCoords.x >= -10 && screenCoords.x <= window.mapConfig.width + 10 &&
-                    screenCoords.y >= -10 && screenCoords.y <= window.mapConfig.height + 10) {
-                    
-                    // Draw marker
-                    const color = getMarkerColor(school.nature);
-                    
-                    ctx.fillStyle = color;
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 2;
-                    
-                    ctx.beginPath();
-                    ctx.arc(screenCoords.x, screenCoords.y, 8, 0, 2 * Math.PI);
-                    ctx.fill();
-                    ctx.stroke();
-                    
-                    // Store marker data for click detection
-                    markers.push({
-                        x: screenCoords.x,
-                        y: screenCoords.y,
-                        data: school
-                    });
-                }
-            });
-            
-            updateResultsInfo(filteredSchools.length);
-        }
-
-        function getMarkerColor(nature) {
-            switch(nature.toLowerCase()) {
-                case 'públic': return '#28a745';
-                case 'concertat': return '#ffc107';
-                case 'privat': return '#dc3545';
-                default: return '#667eea';
-            }
-        }
-
-        function setupMapEvents() {
-            const canvas = document.getElementById('mapCanvas');
-            let isDragging = false;
-            let lastX, lastY;
-
-            canvas.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                lastX = e.offsetX;
-                lastY = e.offsetY;
-                canvas.style.cursor = 'grabbing';
-            });
-
-            canvas.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    const deltaX = e.offsetX - lastX;
-                    const deltaY = e.offsetY - lastY;
-                    
-                    // Update map center
-                    const scale = Math.pow(2, window.mapConfig.zoom);
-                    window.mapConfig.centerLng -= deltaX / (scale * 100);
-                    window.mapConfig.centerLat += deltaY / (scale * 100);
-                    
-                    updateMarkers();
-                    
-                    lastX = e.offsetX;
-                    lastY = e.offsetY;
-                }
-            });
-
-            canvas.addEventListener('mouseup', () => {
-                isDragging = false;
-                canvas.style.cursor = 'grab';
-            });
-
-            canvas.addEventListener('click', (e) => {
-                if (!isDragging) {
-                    handleMapClick(e.offsetX, e.offsetY);
-                }
-            });
-
-            canvas.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? -1 : 1;
-                zoom(delta, e.offsetX, e.offsetY);
-            });
-        }
-
-        function handleMapClick(x, y) {
-            // Check if click is on a marker
-            for (let marker of markers) {
-                const distance = Math.sqrt(Math.pow(x - marker.x, 2) + Math.pow(y - marker.y, 2));
-                if (distance <= 10) {
-                    showInfoWindow(marker.data, x, y);
-                    return;
-                }
-            }
-            
-            // Hide info window if clicking elsewhere
-            hideInfoWindow();
-        }
-
-        function showInfoWindow(school, x, y) {
-            const infoWindow = document.getElementById('infoWindow');
-            const markerClass = school.nature.toLowerCase();
-            
-            infoWindow.innerHTML = `
-                <div style="font-weight: 600; color: #333; margin-bottom: 8px;">${school.name}</div>
-                <div style="font-size: 13px; color: #666; line-height: 1.4;">
-                    <strong>Adreça:</strong> ${school.address}<br>
-                    <strong>Municipi:</strong> ${school.municipality}<br>
-                    <strong>Codi postal:</strong> ${school.postalCode}<br>
-                    <strong>Telèfon:</strong> ${school.phone}<br>
-                    <strong>Email:</strong> ${school.email}
-                </div>
-                <div style="display: inline-block; padding: 3px 8px; background: ${getMarkerColor(school.nature)}; color: white; border-radius: 12px; font-size: 11px; margin-top: 8px;">
-                    ${school.nature}
-                </div>
-                <div style="position: absolute; top: 5px; right: 5px; cursor: pointer; font-size: 16px; color: #999;" onclick="hideInfoWindow()">×</div>
-            `;
-            
-            infoWindow.style.display = 'block';
-            infoWindow.style.left = Math.min(x + 10, window.mapConfig.width - 320) + 'px';
-            infoWindow.style.top = Math.max(y - 100, 10) + 'px';
-            
-            currentInfoWindow = infoWindow;
-        }
-
-        function hideInfoWindow() {
-            const infoWindow = document.getElementById('infoWindow');
-            infoWindow.style.display = 'none';
-            currentInfoWindow = null;
-        }
-
-        function zoomIn() {
-            zoom(1, window.mapConfig.width / 2, window.mapConfig.height / 2);
-        }
-
-        function zoomOut() {
-            zoom(-1, window.mapConfig.width / 2, window.mapConfig.height / 2);
-        }
-
-        function zoom(delta, centerX, centerY) {
-            const config = window.mapConfig;
-            const newZoom = Math.max(config.minZoom, Math.min(config.maxZoom, config.zoom + delta));
-            
-            if (newZoom !== config.zoom) {
-                // Adjust center to zoom towards mouse position
-                const beforeCoords = screenToLatLng(centerX, centerY);
-                config.zoom = newZoom;
-                const afterCoords = screenToLatLng(centerX, centerY);
-                
-                config.centerLat += beforeCoords.lat - afterCoords.lat;
-                config.centerLng += beforeCoords.lng - afterCoords.lng;
-                
-                updateMarkers();
-            }
         }
 
         function getFilteredSchools() {
@@ -785,11 +549,11 @@
                         const infoWindow = new google.maps.InfoWindow({
                             content: `
                                 <div style="max-width: 250px;">
-                                    <h3 style="margin: 0 0 5px 0; font-size: 14px;">${school.name}</h3>
-                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${school.address}</p>
-                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${school.postalCode} ${school.municipality}</p>
-                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${school.phone}</p>
-                                    <p style="margin: 0; font-size: 12px;">${school.email}</p>
+                                    <h3 style="margin: 0 0 5px 0; font-size: 14px;">${sanitizeHTML(school.name)}</h3>
+                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${sanitizeHTML(school.address)}</p>
+                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${sanitizeHTML(school.postalCode)} ${sanitizeHTML(school.municipality)}</p>
+                                    <p style="margin: 0 0 5px 0; font-size: 12px;">${sanitizeHTML(school.phone)}</p>
+                                    <p style="margin: 0; font-size: 12px;">${sanitizeHTML(school.email)}</p>
                                 </div>
                             `
                         });
@@ -872,8 +636,6 @@
                 }
             }, 100);
         }); */
-
-        // window.addEventListener('load', initializeMap); // This is removed to prevent premature initialization
     </script>
 </body>
 </html>

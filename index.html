@@ -43,37 +43,6 @@
             flex: 1;
         }
 
-        .tabs-container {
-            display: flex;
-            background: #ffffff;
-            border-bottom: 1px solid #e1e5e9;
-        }
-
-        .tab-button {
-            flex: 1;
-            padding: 10px;
-            cursor: pointer;
-            background: #f1f1f1;
-            border: none;
-            font-size: 14px;
-        }
-
-        .tab-button.active {
-            background: #ffffff;
-            border-bottom: 3px solid #667eea;
-            font-weight: bold;
-        }
-
-        .tab-content {
-            display: none;
-            flex: 1;
-            height: 100%;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
         .map-container {
             flex: 1;
             position: relative;
@@ -104,9 +73,45 @@
             margin-bottom: 5px;
         }
 
+        .sidebar-header h2 {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
         .sidebar-header p {
             font-size: 0.9em;
             opacity: 0.9;
+        }
+
+        .tabs-container {
+            display: flex;
+            background: #ffffff;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            cursor: pointer;
+            background: #f1f1f1;
+            border: none;
+            font-size: 14px;
+        }
+
+        .tab-button.active {
+            background: #ffffff;
+            border-bottom: 3px solid #667eea;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            height: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .filters-section {
@@ -220,13 +225,7 @@
     </style>
 </head>
 <body>
-    <div class="tabs-container">
-        <button class="tab-button active" data-target="mapTab">Mapa</button>
-        <button class="tab-button" data-target="studentTab">Alumnes</button>
-        <button class="tab-button" data-target="agreementTab">Convenis</button>
-    </div>
-    <div id="mapTab" class="tab-content active">
-        <div class="container">
+    <div class="container">
         <div class="map-container">
             <div id="map">
                 <div class="loading-message">
@@ -236,92 +235,107 @@
         </div>
         
         <div class="sidebar">
-            <div class="sidebar-header">
-                <h1>Centres Educatius</h1>
-                <p>Catalunya</p>
+            <div class="tabs-container">
+                <button class="tab-button active" data-target="centresTab">Centres</button>
+                <button class="tab-button" data-target="studentTab">Alumnes</button>
+                <button class="tab-button" data-target="agreementTab">Convenis</button>
             </div>
-            
-            <div class="filters-section">
-                <div class="filter-group">
-                    <h3>Cerca per nom</h3>
-                    <input type="text" id="nameFilter" class="filter-input" placeholder="Nom del centre...">
+
+            <div id="centresTab" class="tab-content active">
+                <div class="sidebar-header">
+                    <h1>Centres Educatius</h1>
+                    <p>Catalunya</p>
                 </div>
                 
-                <div class="filter-group">
-                    <h3>Codi postal</h3>
-                    <input type="text" id="postalCodeFilter" class="filter-input" placeholder="08000">
-                </div>
-                
-                <div class="filter-group">
-                    <h3>Municipi</h3>
-                    <input type="text" id="municipalityFilter" class="filter-input" placeholder="Municipi...">
-                </div>
-                
-                <div class="filter-group">
-                    <h3>Titularitat</h3>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="public" checked>
-                            <label for="public">Públic</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="concerted" checked>
-                            <label for="concerted">Concertat</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="private" checked>
-                            <label for="private">Privat</label>
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <h3>Cerca per nom</h3>
+                        <input type="text" id="nameFilter" class="filter-input" placeholder="Nom del centre...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h3>Codi postal</h3>
+                        <input type="text" id="postalCodeFilter" class="filter-input" placeholder="08000">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h3>Municipi</h3>
+                        <input type="text" id="municipalityFilter" class="filter-input" placeholder="Municipi...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h3>Titularitat</h3>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="public" checked>
+                                <label for="public">Públic</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="concerted" checked>
+                                <label for="concerted">Concertat</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="private" checked>
+                                <label for="private">Privat</label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="filter-group">
-                    <h3>Tipus d'estudis</h3>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="infantil" checked>
-                            <label for="infantil">Educació Infantil</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="primaria" checked>
-                            <label for="primaria">Educació Primària</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="secundaria" checked>
-                            <label for="secundaria">Educació Secundària</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="batxillerat" checked>
-                            <label for="batxillerat">Batxillerat</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="fp" checked>
-                            <label for="fp">Formació Professional</label>
+                    
+                    <div class="filter-group">
+                        <h3>Tipus d'estudis</h3>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="infantil" checked>
+                                <label for="infantil">Educació Infantil</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="primaria" checked>
+                                <label for="primaria">Educació Primària</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="secundaria" checked>
+                                <label for="secundaria">Educació Secundària</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="batxillerat" checked>
+                                <label for="batxillerat">Batxillerat</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="fp" checked>
+                                <label for="fp">Formació Professional</label>
+                            </div>
                         </div>
                     </div>
+                    
+                    <button class="clear-filters" onclick="clearAllFilters()">
+                        Esborrar filtres
+                    </button>
                 </div>
                 
-                <button class="clear-filters" onclick="clearAllFilters()">
-                    Esborrar filtres
-                </button>
+                <div class="results-info" id="resultsInfo">
+                    Carregant centres educatius...
+                </div>
             </div>
-            
-            <div class="results-info" id="resultsInfo">
-                Carregant centres educatius...
+
+            <div id="studentTab" class="tab-content">
+                <div class="sidebar-header">
+                    <h2>Informació d'Alumnes</h2>
+                    <p>Estadístiques i dades dels centres educatius</p>
+                </div>
+                <div style="padding: 20px;">
+                    <input type="text" class="filter-input" placeholder="ID alumne">
+                </div>
             </div>
-        </div>
-    </div>
-    </div>
 
-    <div id="studentTab" class="tab-content">
-        <div style="padding: 20px;">
-            <input type="text" class="filter-input" placeholder="ID alumne">
-        </div>
-    </div>
-
-    <div id="agreementTab" class="tab-content">
-        <div style="padding: 20px;">
-            <input type="text" class="filter-input" placeholder="ID conveni">
+            <div id="agreementTab" class="tab-content">
+                <div class="sidebar-header">
+                    <h2>Convenis</h2>
+                    <p>Informació sobre convenis educatius</p>
+                </div>
+                <div style="padding: 20px;">
+                    <input type="text" class="filter-input" placeholder="ID conveni">
+                </div>
+            </div>
         </div>
     </div>
 
@@ -433,8 +447,8 @@
             
             // Create Google Map
             map = new google.maps.Map(mapElement, {
-                center: { lat: 41.3874, lng: 2.1686 }, // Center on Barcelona
-                zoom: 10,
+                center: { lat: 41.3130, lng: 2.0004 }, // Center on Gavà
+                zoom: 14,
                 styles: [
                     {
                         featureType: "poi",
@@ -936,7 +950,7 @@
                 btn.classList.add('active');
                 const target = btn.getAttribute('data-target');
                 document.getElementById(target).classList.add('active');
-                if (target === 'mapTab' && typeof google !== 'undefined' && google.maps) {
+                if (target === 'centresTab' && typeof google !== 'undefined' && google.maps) {
                     google.maps.event.trigger(map, 'resize');
                 }
             });

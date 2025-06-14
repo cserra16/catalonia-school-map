@@ -33,11 +33,45 @@
             background: #f8f9fa;
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .container {
             display: flex;
-            height: 100vh;
+            height: 100%;
+            flex: 1;
+        }
+
+        .tabs-container {
+            display: flex;
+            background: #ffffff;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            cursor: pointer;
+            background: #f1f1f1;
+            border: none;
+            font-size: 14px;
+        }
+
+        .tab-button.active {
+            background: #ffffff;
+            border-bottom: 3px solid #667eea;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            height: 100%;
+        }
+
+        .tab-content.active {
+            display: block;
         }
 
         .map-container {
@@ -186,7 +220,13 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="tabs-container">
+        <button class="tab-button active" data-target="mapTab">Mapa</button>
+        <button class="tab-button" data-target="studentTab">Alumnes</button>
+        <button class="tab-button" data-target="agreementTab">Convenis</button>
+    </div>
+    <div id="mapTab" class="tab-content active">
+        <div class="container">
         <div class="map-container">
             <div id="map">
                 <div class="loading-message">
@@ -269,6 +309,19 @@
             <div class="results-info" id="resultsInfo">
                 Carregant centres educatius...
             </div>
+        </div>
+    </div>
+    </div>
+
+    <div id="studentTab" class="tab-content">
+        <div style="padding: 20px;">
+            <input type="text" class="filter-input" placeholder="ID alumne">
+        </div>
+    </div>
+
+    <div id="agreementTab" class="tab-content">
+        <div style="padding: 20px;">
+            <input type="text" class="filter-input" placeholder="ID conveni">
         </div>
     </div>
 
@@ -874,6 +927,20 @@
         }); */
 
         // window.addEventListener('load', initializeMap); // This is removed to prevent premature initialization
+
+        // Tabs handling
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                const target = btn.getAttribute('data-target');
+                document.getElementById(target).classList.add('active');
+                if (target === 'mapTab' && typeof google !== 'undefined' && google.maps) {
+                    google.maps.event.trigger(map, 'resize');
+                }
+            });
+        });
     </script>
 </body>
 </html>
